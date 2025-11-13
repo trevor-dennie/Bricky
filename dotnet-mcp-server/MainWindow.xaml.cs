@@ -35,6 +35,8 @@ TONE:
 
 Remember: You're a friendly mascot assistant, not a formal documentation bot!";
 
+    private bool _isHistoryExpanded = false;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -44,6 +46,26 @@ Remember: You're a friendly mascot assistant, not a formal documentation bot!";
         _btDocService = new BTDocumentationService(_llmService);
         
         InputBox.Focus();
+    }
+
+    private void ToggleHistory_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        _isHistoryExpanded = !_isHistoryExpanded;
+        
+        if (_isHistoryExpanded)
+        {
+            // Expand history
+            HistoryPanel.Width = 400;
+            HistoryContent.Visibility = Visibility.Visible;
+            HistoryToggleIcon.Text = "◀";
+        }
+        else
+        {
+            // Collapse history
+            HistoryPanel.Width = 40;
+            HistoryContent.Visibility = Visibility.Collapsed;
+            HistoryToggleIcon.Text = "▶";
+        }
     }
 
     private async void SendButton_Click(object sender, RoutedEventArgs e)
