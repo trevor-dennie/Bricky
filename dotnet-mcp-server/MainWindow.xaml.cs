@@ -57,14 +57,14 @@ Remember: You're a friendly mascot assistant, not a formal documentation bot!";
             // Expand history
             HistoryPanel.Width = 400;
             HistoryContent.Visibility = Visibility.Visible;
-            HistoryToggleIcon.Text = "◀";
+            HistoryToggleIcon.Text = "▶";
         }
         else
         {
             // Collapse history
             HistoryPanel.Width = 40;
             HistoryContent.Visibility = Visibility.Collapsed;
-            HistoryToggleIcon.Text = "▶";
+            HistoryToggleIcon.Text = "◀";
         }
     }
 

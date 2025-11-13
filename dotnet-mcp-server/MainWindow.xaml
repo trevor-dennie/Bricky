@@ -160,7 +160,7 @@
         </Grid>
         
         <!-- RIGHT SIDE: Conversation history (collapsible) -->
-    <Grid Grid.Column="1" Margin="0,20,20,20" x:Name="HistoryPanel" Width="40">
+        <Grid Grid.Column="1" Margin="0,20,20,20" x:Name="HistoryPanel" Width="40">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -170,19 +170,24 @@
             <Border Grid.Column="0" 
                     Background="{StaticResource PrimaryBrush}"
                     BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="0,2,2,2"
-                    CornerRadius="10,0,0,10"
-                    Width="40"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Width="32"
+                    Height="60"
+                    VerticalAlignment="Top"
+                    Margin="0,40,0,0"
                     Cursor="Hand"
                     MouseLeftButtonDown="ToggleHistory_Click">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="5" ShadowDepth="2" Opacity="0.3"/>
+                </Border.Effect>
                 <TextBlock x:Name="HistoryToggleIcon"
-                          Text="▶"
+                          Text="◀"
                           Foreground="White"
-                          FontSize="20"
-                          FontWeight="Bold"
+                          FontSize="16"
+                          FontWeight="SemiBold"
                           HorizontalAlignment="Center"
-                          VerticalAlignment="Center"
-                          Margin="0,0,0,0"/>
+                          VerticalAlignment="Center"/>
             </Border>
             
             <!-- History content -->
