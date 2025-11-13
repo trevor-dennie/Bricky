@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     private bool _isSpeaking = false;
     private IWavePlayer? _wavePlayer;
     private AudioFileReader? _audioFileReader;
+    private string _currentSpeechText = "👋 Hi! I'm Bricky, your BuilderTrend assistant! Ask me anything!";
     
     // Clippy-style system prompt for Bricky
     private const string BrickySystemPrompt = @"You are Bricky, a helpful and friendly BuilderTrend documentation assistant. 
@@ -110,6 +111,12 @@ Remember: You're a friendly mascot assistant, not a formal documentation bot!";
             HistoryContent.Visibility = Visibility.Collapsed;
             HistoryToggleIcon.Text = "◀";
         }
+    }
+
+    private void SpeechPlayButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Play the current speech bubble text
+        PlayTextToSpeech(_currentSpeechText);
     }
 
     private async void SendButton_Click(object sender, RoutedEventArgs e)
@@ -238,6 +245,7 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
         Dispatcher.Invoke(() =>
         {
             SpeechText.Text = text;
+            _currentSpeechText = text; // Store for TTS playback
             
             // Animate the speech bubble
             var animation = new DoubleAnimation

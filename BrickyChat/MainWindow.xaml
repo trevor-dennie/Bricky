@@ -49,6 +49,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     
                     <!-- Speech bubble tail -->
@@ -74,6 +75,46 @@
                                   Foreground="{StaticResource TextBrush}"
                                   LineHeight="18"/>
                     </Border>
+                    
+                    <!-- Play button for speech bubble TTS -->
+                    <Button x:Name="SpeechPlayButton"
+                            Grid.Column="2"
+                            Content="🔊"
+                            FontSize="18"
+                            Width="36"
+                            Height="36"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Top"
+                            Background="#F5F5F5"
+                            BorderBrush="#E0E0E0"
+                            BorderThickness="1"
+                            ToolTip="Play audio (accessibility)"
+                            Cursor="Hand"
+                            Click="SpeechPlayButton_Click">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="#F5F5F5"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="6">
+                                                <ContentPresenter HorizontalAlignment="Center" 
+                                                                VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#2196F3"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                 </Grid>
             </Grid>
             
