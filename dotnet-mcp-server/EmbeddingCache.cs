@@ -7,7 +7,7 @@ namespace McpServer;
 public class EmbeddingCache
 {
     private readonly string _cacheFilePath;
-    private const int CACHE_VERSION = 3; // Incremented for 100K char limit support
+    private const int CACHE_VERSION = 4; // Incremented for improved embedding algorithm
 
     public EmbeddingCache(string cacheDirectory = "cache")
     {

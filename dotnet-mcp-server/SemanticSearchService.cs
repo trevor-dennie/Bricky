@@ -134,7 +134,8 @@ public class SemanticSearchService
                     Score = score,
                     Snippet = article.Description.Length > 200 
                         ? article.Description.Substring(0, 200) + "..." 
-                        : article.Description
+                        : article.Description,
+                    FullContent = article.FullContent ?? "" // Include full content for AI
                 });
             }
         }
@@ -153,19 +154,22 @@ public class SemanticSearchService
     {
         try
         {
-            // Truncate very long text
-            if (text.Length > 500)
+            // Truncate very long text (Ollama can handle quite a bit, but let's be reasonable)
+            if (text.Length > 8000)
             {
-                text = text.Substring(0, 500);
+                text = text.Substring(0, 8000);
             }
 
-            // Use LLM to generate a simple semantic representation
-            // For better results, you could use OpenAI's embedding API or a local embedding model
-            var prompt = $"Extract 5 key semantic concepts from this text as comma-separated words: {text}";
+            // Use LLM to generate a richer semantic representation
+            var prompt = $@"Analyze this text and extract 20-30 key semantic concepts, themes, and topics as comma-separated phrases. Include both specific terms and broader concepts:
+
+{text}
+
+List only the concepts, separated by commas:";
             
             var response = await _llmService.ChatAsync(
                 prompt,
-                "You are a text analysis assistant. Extract only the key concepts as comma-separated words, nothing else."
+                "You are a text analysis assistant. Extract semantic concepts as comma-separated phrases."
             );
 
             // Convert concepts to a simple embedding vector
@@ -186,23 +190,32 @@ public class SemanticSearchService
         // Simple hash-based embedding (for demonstration)
         // In production, use a proper embedding model
         var words = concepts.ToLower()
-            .Split(new[] { ',', ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-            .Take(10)
+            .Split(new[] { ',', ' ', '\n', '.', ';' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(w => w.Trim())
+            .Where(w => w.Length > 2) // Skip very short words
+            .Distinct() // Remove duplicates
+            .Take(50) // Take more concepts for better differentiation
             .ToArray();
 
-        var embedding = new float[128]; // 128-dimensional vector
+        var embedding = new float[256]; // Increase to 256-dimensional vector for better differentiation
 
+        // Use multiple hash functions to create a more diverse embedding
         foreach (var word in words)
         {
-            var hash = word.GetHashCode();
+            var hash1 = word.GetHashCode();
+            var hash2 = word.Reverse().GetHashCode();
+            var hash3 = (word + word).GetHashCode();
+            
             for (int i = 0; i < embedding.Length; i++)
             {
-                // Use hash to populate embedding dimensions
-                embedding[i] += (float)Math.Sin((hash + i) * 0.1);
+                // Use multiple hash combinations for better distribution
+                embedding[i] += (float)Math.Sin((hash1 + i) * 0.1);
+                embedding[i] += (float)Math.Cos((hash2 + i) * 0.1);
+                embedding[i] += (float)Math.Tanh((hash3 + i) * 0.01);
             }
         }
 
-        // Normalize
+        // Normalize to unit vector
         var magnitude = (float)Math.Sqrt(embedding.Sum(x => x * x));
         if (magnitude > 0)
         {

@@ -212,7 +212,7 @@ class ConsoleChat
                     try
                     {
                         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                        var results = await btDocService.SearchDocumentationAsync(searchQuery, useSemanticSearch: true);
+                        var searchResults = await btDocService.SearchDocumentationResultsAsync(searchQuery, useSemanticSearch: true);
                         stopwatch.Stop();
                         
                         Console.ForegroundColor = ConsoleColor.Green;
@@ -220,25 +220,71 @@ class ConsoleChat
                         Console.ResetColor();
                         Console.WriteLine();
                         
+                        if (searchResults.Count == 0)
+                        {
+                            Console.WriteLine("No relevant articles found.");
+                            Console.WriteLine();
+                            continue;
+                        }
+                        
                         // Show raw results
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.WriteLine("📚 Top Articles Found:");
                         Console.ResetColor();
-                        Console.WriteLine(results);
-                        Console.WriteLine();
+                        int count = 1;
+                        foreach (var result in searchResults.Take(5))
+                        {
+                            Console.WriteLine($"{count}. {result.Title}");
+                            Console.WriteLine($"   URL: {result.Url}");
+                            Console.WriteLine($"   Relevance Score: {result.Score:F2}");
+                            if (!string.IsNullOrEmpty(result.Snippet))
+                            {
+                                Console.WriteLine($"   Summary: {result.Snippet}");
+                            }
+                            Console.WriteLine();
+                            count++;
+                        }
                         
-                        // Generate AI response based on search results
+                        // Generate AI response based on search results with FULL content
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.WriteLine("💬 Generating AI response...");
                         Console.ResetColor();
                         Console.WriteLine();
                         
-                        var aiPrompt = $@"Based on the following BuilderTrend documentation search results, please provide a helpful, conversational answer to the user's question: ""{searchQuery}""
-
-{results}
-
-Provide a clear, practical answer that synthesizes the information from these articles. If the articles don't fully answer the question, mention what information is available and suggest what the user might want to explore further.";
-
+                        // Build prompt with full article content
+                        var promptBuilder = new System.Text.StringBuilder();
+                        promptBuilder.AppendLine($@"Based on the following BuilderTrend documentation articles, please provide a helpful, conversational answer to the user's question: ""{searchQuery}""");
+                        promptBuilder.AppendLine();
+                        promptBuilder.AppendLine("Here are the most relevant articles with their full content:");
+                        promptBuilder.AppendLine();
+                        
+                        int articleNum = 1;
+                        foreach (var result in searchResults.Take(5))
+                        {
+                            promptBuilder.AppendLine($"=== Article {articleNum}: {result.Title} ===");
+                            promptBuilder.AppendLine($"URL: {result.Url}");
+                            promptBuilder.AppendLine();
+                            if (!string.IsNullOrEmpty(result.FullContent))
+                            {
+                                // Limit content to prevent prompt overflow
+                                var content = result.FullContent.Length > 15000 
+                                    ? result.FullContent.Substring(0, 15000) + "... [content truncated]"
+                                    : result.FullContent;
+                                promptBuilder.AppendLine(content);
+                            }
+                            else if (!string.IsNullOrEmpty(result.Snippet))
+                            {
+                                promptBuilder.AppendLine(result.Snippet);
+                            }
+                            promptBuilder.AppendLine();
+                            promptBuilder.AppendLine("---");
+                            promptBuilder.AppendLine();
+                            articleNum++;
+                        }
+                        
+                        promptBuilder.AppendLine("Please provide a clear, practical answer that synthesizes the information from these articles. If the articles don't fully answer the question, mention what information is available and suggest what the user might want to explore further.");
+                        
+                        var aiPrompt = promptBuilder.ToString();
                         var aiResponse = await llmService.ChatAsync(aiPrompt, systemPrompt);
                         
                         Console.ForegroundColor = ConsoleColor.Green;

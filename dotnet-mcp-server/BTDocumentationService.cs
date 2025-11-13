@@ -127,6 +127,77 @@ public class BTDocumentationService
         }
     }
 
+    public async Task<List<SearchResult>> SearchDocumentationResultsAsync(string query, bool useSemanticSearch = true)
+    {
+        try
+        {
+            List<SearchResult> results;
+
+            // Try semantic search first if enabled and available
+            if (useSemanticSearch && _semanticSearch != null && _llmService != null)
+            {
+                try
+                {
+                    // Index articles if not already done
+                    if (!_isSemanticIndexed)
+                    {
+                        await LogAsync("Loading semantic search index...");
+                        
+                        // Get articles WITHOUT content first (just URLs for cache validation)
+                        var articles = await GetArticlesAsync(fetchContent: false);
+                        
+                        if (articles.Count == 0)
+                        {
+                            return new List<SearchResult>();
+                        }
+                        
+                        // IndexArticlesAsync will check cache and only fetch content if cache is invalid
+                        await _semanticSearch.IndexArticlesAsync(articles, async (arts) =>
+                        {
+                            await LogAsync("Fetching full content for articles...");
+                            await FetchArticleContentAsync(arts);
+                            await LogAsync("Article content fetching complete");
+                        });
+                        _isSemanticIndexed = true;
+                    }
+
+                    await LogAsync("Using semantic search...");
+                    results = await _semanticSearch.SearchAsync(query, 5);
+                    
+                    if (results.Count > 0)
+                    {
+                        await LogAsync($"Semantic search found {results.Count} results");
+                    }
+                    else
+                    {
+                        await LogAsync("Semantic search found no results, falling back to keyword search");
+                        var articles = await GetArticlesAsync(fetchContent: true); // Need content for keyword search too
+                        results = SearchArticles(articles, query);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await LogAsync($"Semantic search failed: {ex.Message}, falling back to keyword search");
+                    var articles = await GetArticlesAsync(fetchContent: true);
+                    results = SearchArticles(articles, query);
+                }
+            }
+            else
+            {
+                await LogAsync("Using keyword search...");
+                var articles = await GetArticlesAsync(fetchContent: true);
+                results = SearchArticles(articles, query);
+            }
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            await LogAsync($"Error searching documentation: {ex.Message}");
+            return new List<SearchResult>();
+        }
+    }
+
     private async Task<List<HelpArticle>> GetArticlesAsync(bool fetchContent = false)
     {
         // Check cache
@@ -299,7 +370,8 @@ public class BTDocumentationService
                     Title = article.Title,
                     Url = article.Url,
                     Score = score,
-                    Snippet = matchedSnippets.FirstOrDefault() ?? article.Description.Substring(0, Math.Min(150, article.Description.Length))
+                    Snippet = matchedSnippets.FirstOrDefault() ?? article.Description.Substring(0, Math.Min(150, article.Description.Length)),
+                    FullContent = article.FullContent ?? ""
                 });
             }
         }
@@ -421,4 +493,5 @@ public class SearchResult
     public string Url { get; set; } = "";
     public double Score { get; set; }
     public string Snippet { get; set; } = "";
+    public string FullContent { get; set; } = ""; // Full article content for AI processing
 }
