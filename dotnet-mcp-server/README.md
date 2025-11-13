@@ -8,12 +8,25 @@ This MCP server demonstrates the core concepts of the Model Context Protocol wit
 
 ## Features
 
-### Available Tools
+### 💬 Console Chat Mode 🆕
+
+Interactive command-line interface for direct LLM conversations:
+```powershell
+.\chat.ps1
+```
+- Chat directly with the AI in your terminal
+- Maintain conversation history
+- Set system prompts for specific behaviors
+- Perfect for testing and quick questions
+
+📚 **[Console Chat Documentation](CONSOLE_CHAT.md)**
+
+### Available Tools (MCP Server Mode)
 
 - **echo**: Echoes back a message
 - **get_time**: Returns the current server time
 - **bt_documentation**: Searches BuilderTrend help articles for relevant information
-- **ask_llm**: 🆕 Ask questions to a free-tier LLM (AI assistant)
+- **ask_llm**: Ask questions to a free-tier LLM (AI assistant)
 
 ### 🤖 LLM Integration
 

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <StartupObject>McpServer.ConsoleChat</StartupObject>
+    <AssemblyName>ChatConsole</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Exclude files we don't need for console chat -->
+    <Compile Remove="Program.cs" />
+    <Compile Remove="BTDocumentationService.cs" />
+    
+    <None Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
