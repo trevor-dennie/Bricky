@@ -53,8 +53,25 @@ public class SemanticSearchService
         {
             try
             {
-                // Create text to embed (title + description)
-                var textToEmbed = $"{article.Title}. {article.Description}";
+                // Create text to embed - use full content if available, otherwise title + description
+                string textToEmbed;
+                if (!string.IsNullOrEmpty(article.FullContent))
+                {
+                    // Use full content for better semantic understanding
+                    textToEmbed = $"{article.Title}. {article.FullContent}";
+                    
+                    // Limit to 2000 chars for embedding (to avoid overwhelming the LLM)
+                    if (textToEmbed.Length > 2000)
+                    {
+                        textToEmbed = textToEmbed.Substring(0, 2000);
+                    }
+                }
+                else
+                {
+                    // Fallback to title + description
+                    textToEmbed = $"{article.Title}. {article.Description}";
+                }
+                
                 var embedding = await GenerateEmbeddingAsync(textToEmbed);
                 
                 if (embedding != null)

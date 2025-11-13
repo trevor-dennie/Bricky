@@ -1,0 +1,11 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "bt_documentation",
+    "arguments": {
+      "query": "project schedule management"
+    }
+  }
+}

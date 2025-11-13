@@ -210,11 +210,19 @@ public class BTDocumentationService
                 .Select(g => g.First())
                 .ToList();
 
+            await LogAsync($"Crawled {articles.Count} articles from BuilderTrend help site");
+
+            // Fetch full content for each article (for semantic search)
+            if (_llmService != null)
+            {
+                await LogAsync("Fetching full content for articles...");
+                await FetchArticleContentAsync(articles);
+                await LogAsync("Article content fetching complete");
+            }
+
             // Cache results
             _cachedArticles = articles;
             _cacheTime = DateTime.Now;
-
-            await LogAsync($"Crawled {articles.Count} articles from BuilderTrend help site");
         }
         catch (Exception ex)
         {
@@ -290,6 +298,82 @@ public class BTDocumentationService
         return results.OrderByDescending(r => r.Score).ToList();
     }
 
+    private async Task FetchArticleContentAsync(List<HelpArticle> articles)
+    {
+        int fetchedCount = 0;
+        int totalArticles = articles.Count;
+
+        foreach (var article in articles)
+        {
+            try
+            {
+                fetchedCount++;
+                if (fetchedCount % 10 == 0)
+                {
+                    await LogAsync($"Fetching content... {fetchedCount}/{totalArticles}");
+                }
+
+                var html = await _httpClient.GetStringAsync(article.Url);
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                // Try multiple selectors to find article content
+                var contentNode = 
+                    doc.DocumentNode.SelectSingleNode("//article") ??
+                    doc.DocumentNode.SelectSingleNode("//div[contains(@class, 'article-content')]") ??
+                    doc.DocumentNode.SelectSingleNode("//div[contains(@class, 'content')]") ??
+                    doc.DocumentNode.SelectSingleNode("//main") ??
+                    doc.DocumentNode.SelectSingleNode("//div[@id='content']") ??
+                    doc.DocumentNode.SelectSingleNode("//body");
+
+                if (contentNode != null)
+                {
+                    // Extract text content, removing scripts and styles
+                    foreach (var script in contentNode.SelectNodes(".//script") ?? new HtmlNodeCollection(null))
+                    {
+                        script.Remove();
+                    }
+                    foreach (var style in contentNode.SelectNodes(".//style") ?? new HtmlNodeCollection(null))
+                    {
+                        style.Remove();
+                    }
+
+                    var fullContent = CleanText(contentNode.InnerText);
+                    
+                    // Store full content, but limit to reasonable size
+                    if (fullContent.Length > 10000)
+                    {
+                        article.FullContent = fullContent.Substring(0, 10000) + "...";
+                    }
+                    else
+                    {
+                        article.FullContent = fullContent;
+                    }
+
+                    // Update description if it's just the title
+                    if (string.IsNullOrEmpty(article.Description) || article.Description == article.Title)
+                    {
+                        // Use first paragraph or first 300 chars as description
+                        var firstPara = fullContent.Length > 300 
+                            ? fullContent.Substring(0, 300) + "..." 
+                            : fullContent;
+                        article.Description = firstPara;
+                    }
+                }
+                
+                // Small delay to be nice to the server
+                await Task.Delay(100);
+            }
+            catch (Exception ex)
+            {
+                await LogAsync($"Error fetching content for {article.Url}: {ex.Message}");
+                // Continue with other articles
+            }
+        }
+
+        await LogAsync($"Fetched full content for {fetchedCount} articles");
+    }
+
     private bool IsHelpArticleLink(string href)
     {
         if (string.IsNullOrWhiteSpace(href)) return false;
@@ -319,6 +403,7 @@ public class HelpArticle
     public string Title { get; set; } = "";
     public string Url { get; set; } = "";
     public string Description { get; set; } = "";
+    public string FullContent { get; set; } = "";
 }
 
 public class SearchResult

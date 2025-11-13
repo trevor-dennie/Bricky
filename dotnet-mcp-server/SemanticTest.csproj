@@ -5,8 +5,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <StartupObject>SemanticSearchTest</StartupObject>
     <AssemblyName>SemanticTest</AssemblyName>
+    <IntermediateOutputPath>obj\SemanticTest\</IntermediateOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +17,8 @@
     <!-- Exclude other Main entry points -->
     <Compile Remove="Program.cs" />
     <Compile Remove="ConsoleChat.cs" />
+    <Compile Remove="McpTestClient.cs" />
+    <Compile Remove="TestClient\**\*" />
     
     <None Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

@@ -10,9 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Exclude files we don't need for console chat -->
     <Compile Remove="Program.cs" />
-    <Compile Remove="BTDocumentationService.cs" />
+    <Compile Remove="SemanticSearchTest.cs" />
+    <Compile Remove="McpTestClient.cs" />
+    <Compile Remove="TestClient\**\*" />
     
     <None Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

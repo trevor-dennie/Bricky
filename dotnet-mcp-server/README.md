@@ -31,6 +31,7 @@ Interactive command-line interface for direct LLM conversations:
 ### 🔍 Semantic Search 🆕
 
 BuilderTrend documentation searches now use **semantic search** powered by your LLM:
+- **Full content indexing** - Fetches and indexes actual article content
 - Understands meaning, not just keywords
 - Finds related concepts and synonyms
 - Better relevance ranking
@@ -38,6 +39,7 @@ BuilderTrend documentation searches now use **semantic search** powered by your 
 - **Persistent caching** - instant startup after first indexing
 
 📚 **[Semantic Search Documentation](SEMANTIC_SEARCH.md)**  
+📚 **[Full Content Indexing](FULL_CONTENT.md)**  
 📚 **[Cache Documentation](CACHE.md)**
 
 ### 🤖 LLM Integration

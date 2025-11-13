@@ -28,6 +28,8 @@ class ConsoleChat
 
         // Initialize LLM service
         LLMService? llmService;
+        BTDocumentationService? btDocService = null;
+        
         try
         {
             llmService = new LLMService(config.Provider, config.ApiKey, config.Model);
@@ -37,6 +39,23 @@ class ConsoleChat
             Console.ResetColor();
             Console.WriteLine($"   Model: {config.Model ?? "(default)"}");
             Console.WriteLine();
+            
+            // Initialize BT Documentation service
+            try
+            {
+                btDocService = new BTDocumentationService(llmService);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("✅ BuilderTrend documentation search enabled");
+                Console.ResetColor();
+                Console.WriteLine();
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"⚠️  BuilderTrend search disabled: {ex.Message}");
+                Console.ResetColor();
+                Console.WriteLine();
+            }
         }
         catch (Exception ex)
         {
@@ -59,6 +78,10 @@ class ConsoleChat
         Console.WriteLine("  /history - Show conversation history");
         Console.WriteLine("  /exit    - Exit the application");
         Console.WriteLine("  /system  - Set system prompt");
+        if (btDocService != null)
+        {
+            Console.WriteLine("  /search  - Search BuilderTrend documentation");
+        }
         Console.ResetColor();
         Console.WriteLine();
 
@@ -152,6 +175,61 @@ class ConsoleChat
                         Console.ResetColor();
                     }
                     Console.WriteLine();
+                    continue;
+                }
+                else if (command == "/search")
+                {
+                    if (btDocService == null)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("❌ BuilderTrend search is not enabled.");
+                        Console.ResetColor();
+                        Console.WriteLine();
+                        continue;
+                    }
+                    
+                    Console.WriteLine();
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.Write("Search Query: ");
+                    Console.ResetColor();
+                    
+                    var searchQuery = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(searchQuery))
+                    {
+                        Console.WriteLine("Query cannot be empty.");
+                        Console.WriteLine();
+                        continue;
+                    }
+                    
+                    Console.WriteLine();
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("🔍 Searching BuilderTrend documentation...");
+                    Console.WriteLine("   (First search: ~50-90s, Cached: ~1-2s)");
+                    Console.ResetColor();
+                    Console.WriteLine();
+                    
+                    try
+                    {
+                        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                        var results = await btDocService.SearchDocumentationAsync(searchQuery, useSemanticSearch: true);
+                        stopwatch.Stop();
+                        
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"✅ Results (in {stopwatch.Elapsed.TotalSeconds:F1}s):");
+                        Console.ResetColor();
+                        Console.WriteLine();
+                        
+                        Console.WriteLine(results);
+                        Console.WriteLine();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"❌ Search error: {ex.Message}");
+                        Console.ResetColor();
+                        Console.WriteLine();
+                    }
+                    
                     continue;
                 }
                 else

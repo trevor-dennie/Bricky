@@ -1,11 +1,13 @@
 using System.Text.Json;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace McpServer;
 
 public class EmbeddingCache
 {
     private readonly string _cacheFilePath;
-    private const int CACHE_VERSION = 1;
+    private const int CACHE_VERSION = 2; // Incremented for FullContent support
 
     public EmbeddingCache(string cacheDirectory = "cache")
     {
