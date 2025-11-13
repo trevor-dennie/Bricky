@@ -51,6 +51,10 @@ dotnet run --project BrickyChat.csproj
 - **Full Content Access**: Uses the complete indexed article content for accurate answers
 - **Typing Indicator**: Shows when Bricky is thinking
 - **Smooth Animations**: Speech bubble fades in with responses
+- **🔊 Text-to-Speech (NEW)**: Play button on each response for accessibility
+  - Click the 🔊 button next to any Bricky response to hear it read aloud
+  - Great for accessibility and hands-free operation
+  - Click again to stop playback
 
 ## 🎨 UI Layout
 
@@ -61,8 +65,8 @@ dotnet run --project BrickyChat.csproj
 ├─────────────────────────────────────────┤
 │  Chat History                           │  ← Scrollable
 │  User: How do I...                      │     Middle
-│  Bricky: Here's what I found!           │     Section
-│                                         │
+│  [Bricky: Here's what I found!] [🔊]    │     Section
+│                                         │     (Play button)
 ├─────────────────────────────────────────┤
 │  [Type your message...] [Send]          │  ← Input Area
 └─────────────────────────────────────────┘
@@ -167,8 +171,24 @@ Bricky: 🤔 Hmm, I couldn't find anything about that in the BuilderTrend
 
 - .NET 8.0 Windows SDK
 - HtmlAgilityPack 1.11.61
+- System.Speech 8.0.0 (for text-to-speech accessibility)
 - Ollama running locally (llama3.2 model)
 - Existing service files from MCP server project
+
+## ♿ Accessibility Features
+
+Bricky Chat includes built-in accessibility support:
+
+- **Text-to-Speech**: Every Bricky response includes a 🔊 play button
+- **Keyboard Navigation**: Full keyboard support for all interactions
+- **Screen Reader Friendly**: Properly labeled controls and tooltips
+- **High Contrast**: Clear visual separation between user and assistant messages
+- **Hover Effects**: Visual feedback for interactive elements
+
+To use text-to-speech:
+1. Look for the 🔊 button next to any Bricky response
+2. Click to hear the message read aloud
+3. Click again to stop playback if needed
 
 ---
 
