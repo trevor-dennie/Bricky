@@ -1,4 +1,6 @@
 using System.Speech.Synthesis;
+using System.Globalization;
+using NAudio.Wave;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -13,8 +15,11 @@ public partial class MainWindow : Window
     private readonly LLMService _llmService;
     private readonly BTDocumentationService _btDocService;
     private readonly SpeechSynthesizer _speechSynthesizer;
+    private readonly HttpClient _httpClient = new HttpClient();
     private bool _isProcessing = false;
     private bool _isSpeaking = false;
+    private IWavePlayer? _wavePlayer;
+    private AudioFileReader? _audioFileReader;
     
     // Clippy-style system prompt for Bricky
     private const string BrickySystemPrompt = @"You are Bricky, a helpful and friendly BuilderTrend documentation assistant. 
@@ -48,10 +53,41 @@ Remember: You're a friendly mascot assistant, not a formal documentation bot!";
         _llmService = new LLMService();
         _btDocService = new BTDocumentationService(_llmService);
         
-        // Initialize text-to-speech
+        // Initialize text-to-speech with natural voice settings
         _speechSynthesizer = new SpeechSynthesizer();
         _speechSynthesizer.SetOutputToDefaultAudioDevice();
         _speechSynthesizer.SpeakCompleted += (s, e) => _isSpeaking = false;
+        
+        // Try to select a more natural voice (prefer Microsoft voices or neural voices)
+        var availableVoices = _speechSynthesizer.GetInstalledVoices();
+        VoiceInfo? selectedVoice = null;
+        
+        // Prioritize these voice names for better quality
+        string[] preferredVoices = { 
+            "Microsoft David", "Microsoft Zira", "Microsoft Mark",  // Windows 10/11 voices
+            "Microsoft Eva", "Microsoft Aria",                       // Newer voices
+            "David", "Zira", "Mark"                                 // Fallback names
+        };
+        
+        foreach (var voiceName in preferredVoices)
+        {
+            selectedVoice = availableVoices
+                .Select(v => v.VoiceInfo)
+                .FirstOrDefault(v => v.Name.Contains(voiceName, StringComparison.OrdinalIgnoreCase));
+            
+            if (selectedVoice != null)
+                break;
+        }
+        
+        // If we found a preferred voice, use it
+        if (selectedVoice != null)
+        {
+            _speechSynthesizer.SelectVoice(selectedVoice.Name);
+        }
+        
+        // Configure speech rate and volume for more natural sound
+        _speechSynthesizer.Rate = 1;      // Normal speed (-10 to 10, 0 is default)
+        _speechSynthesizer.Volume = 85;    // Slightly softer (0 to 100)
         
         InputBox.Focus();
     }
@@ -309,23 +345,54 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
         ScrollToBottom();
     }
 
-    private void PlayTextToSpeech(string text)
+    private async void PlayTextToSpeech(string text)
     {
         if (_isSpeaking)
         {
             // Stop current speech
             _speechSynthesizer.SpeakAsyncCancelAll();
+            _wavePlayer?.Stop();
             _isSpeaking = false;
             return;
         }
 
         try
         {
-            // Remove emoji from text for cleaner speech
-            var cleanText = System.Text.RegularExpressions.Regex.Replace(text, @"[\u263a-\U0001f645]", "");
+            // Remove emojis and other non-letter characters for cleaner speech
+            var cleanText = System.Text.RegularExpressions.Regex.Replace(text, @"[^\w\s\.,!?'-]", "");
             
+            // Also clean up multiple spaces
+            cleanText = System.Text.RegularExpressions.Regex.Replace(cleanText, @"\s+", " ").Trim();
+            
+            if (string.IsNullOrWhiteSpace(cleanText))
+                return;
+
             _isSpeaking = true;
-            _speechSynthesizer.SpeakAsync(cleanText);
+
+            // Try to use Microsoft Edge TTS (free, natural-sounding)
+            try
+            {
+                await PlayEdgeTTS(cleanText);
+                return;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Edge TTS failed: {ex.Message}, falling back to Windows TTS");
+                // Fall back to Windows TTS
+            }
+
+            // Fallback to Windows Speech Synthesis
+            var prompt = new PromptBuilder();
+            prompt.StartStyle(new PromptStyle()
+            {
+                Emphasis = PromptEmphasis.Moderate,
+                Rate = PromptRate.Medium,
+                Volume = PromptVolume.Default
+            });
+            prompt.AppendText(cleanText);
+            prompt.EndStyle();
+            
+            _speechSynthesizer.SpeakAsync(prompt);
         }
         catch (Exception ex)
         {
@@ -333,6 +400,111 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             _isSpeaking = false;
         }
+    }
+
+    private async Task PlayEdgeTTS(string text)
+    {
+        // Use Google TTS (free, natural voices, actually works!)
+        var tempFile = Path.Combine(Path.GetTempPath(), $"bricky_tts_{Guid.NewGuid()}.mp3");
+        var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "gtts_helper.py");
+
+        // Check if Python and edge-tts are available
+        var pythonPath = FindPython();
+        if (pythonPath == null)
+        {
+            throw new Exception("Python not found. Install Python 3.7+ and gTTS: pip install gTTS");
+        }
+
+        // Call Google TTS helper script
+        var startInfo = new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = pythonPath,
+            Arguments = $"\"{scriptPath}\" \"{text}\" \"{tempFile}\"",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+
+        using var process = System.Diagnostics.Process.Start(startInfo);
+        if (process == null)
+        {
+            throw new Exception("Failed to start Python process");
+        }
+
+        await process.WaitForExitAsync();
+
+        if (process.ExitCode != 0)
+        {
+            var error = await process.StandardError.ReadToEndAsync();
+            throw new Exception($"Google TTS failed: {error}");
+        }
+
+        // Play the generated audio
+        await Dispatcher.InvokeAsync(() =>
+        {
+            _wavePlayer?.Stop();
+            _audioFileReader?.Dispose();
+            
+            _audioFileReader = new AudioFileReader(tempFile);
+            _wavePlayer = new WaveOutEvent();
+            _wavePlayer.Init(_audioFileReader);
+            _wavePlayer.PlaybackStopped += (s, e) =>
+            {
+                _isSpeaking = false;
+                _audioFileReader?.Dispose();
+                _wavePlayer?.Dispose();
+                
+                // Clean up temp file
+                try { File.Delete(tempFile); } catch { }
+            };
+            _wavePlayer.Play();
+        });
+    }
+
+    private string? FindPython()
+    {
+        // Try common Python locations
+        var pythonPaths = new[]
+        {
+            "python",
+            "python3",
+            "py",
+            @"C:\Python312\python.exe",
+            @"C:\Python311\python.exe",
+            @"C:\Python310\python.exe",
+            @"C:\Users\" + Environment.UserName + @"\AppData\Local\Programs\Python\Python312\python.exe",
+            @"C:\Users\" + Environment.UserName + @"\AppData\Local\Programs\Python\Python311\python.exe"
+        };
+
+        foreach (var path in pythonPaths)
+        {
+            try
+            {
+                var startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = path,
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                };
+                using var process = System.Diagnostics.Process.Start(startInfo);
+                if (process != null)
+                {
+                    process.WaitForExit(1000);
+                    if (process.ExitCode == 0)
+                    {
+                        return path;
+                    }
+                }
+            }
+            catch
+            {
+                continue;
+            }
+        }
+        return null;
     }
 
     private void ShowCurrentPrompt(string prompt)

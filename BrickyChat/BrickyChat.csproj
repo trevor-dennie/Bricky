@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
+    <PackageReference Include="System.Speech" Version="8.0.0" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Link to shared service files from MCP Server project -->
+    <Compile Include="..\dotnet-mcp-server\LLMService.cs" Link="Services\LLMService.cs" />
+    <Compile Include="..\dotnet-mcp-server\LLMConfig.cs" Link="Services\LLMConfig.cs" />
+    <Compile Include="..\dotnet-mcp-server\BTDocumentationService.cs" Link="Services\BTDocumentationService.cs" />
+    <Compile Include="..\dotnet-mcp-server\SemanticSearchService.cs" Link="Services\SemanticSearchService.cs" />
+    <Compile Include="..\dotnet-mcp-server\EmbeddingCache.cs" Link="Services\EmbeddingCache.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include assets -->
+    <Resource Include="assets\BrickyV1.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Copy Python TTS helper scripts to output -->
+    <None Include="gtts_helper.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="edge_tts_helper.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

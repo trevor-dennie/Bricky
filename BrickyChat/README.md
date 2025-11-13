@@ -26,7 +26,8 @@ bricky.bat
 
 ### Option 3: Direct dotnet command
 ```bash
-dotnet run --project BrickyChat.csproj
+cd BrickyChat
+dotnet run
 ```
 
 ## 💬 How to Use
@@ -122,7 +123,7 @@ TONE:
 
 **Project**: `BrickyChat.csproj`
 - WPF application (.NET 8.0-windows)
-- Reuses existing services from MCP server:
+- References shared services from `../dotnet-mcp-server`:
   - `LLMService` - Ollama integration
   - `BTDocumentationService` - BuilderTrend doc crawler
   - `SemanticSearchService` - AI-powered semantic search
@@ -134,6 +135,7 @@ TONE:
 - `App.xaml` - WPF application styles and resources
 - `BrickyChatApp.cs` - Application entry point
 - `assets/BrickyV1.png` - Bricky mascot image
+- `appsettings.example.json` - Configuration template
 
 ## 🎯 Example Interactions
 
@@ -179,16 +181,35 @@ Bricky: 🤔 Hmm, I couldn't find anything about that in the BuilderTrend
 
 Bricky Chat includes built-in accessibility support:
 
-- **Text-to-Speech**: Every Bricky response includes a 🔊 play button
+- **Natural Text-to-Speech** 🎙️: Every Bricky response includes a 🔊 play button
+- **Free Neural Voices**: Uses Microsoft Edge TTS (no API key required!)
 - **Keyboard Navigation**: Full keyboard support for all interactions
 - **Screen Reader Friendly**: Properly labeled controls and tooltips
 - **High Contrast**: Clear visual separation between user and assistant messages
 - **Hover Effects**: Visual feedback for interactive elements
 
-To use text-to-speech:
+### Text-to-Speech Features
+
+**🆓 FREE Natural Voice (Default)**
+
+BrickyChat uses **Microsoft Edge TTS** - completely free with human-like neural voices!
+
+- **Voice**: Jenny Neural (en-US) - friendly, natural female voice
+- **Quality**: Neural TTS - sounds like a real person, not robotic
+- **Cost**: FREE - no API key or account required
+- **Works Offline**: No (requires internet connection)
+
+**Automatic Fallback**
+
+If Edge TTS fails (no internet), automatically falls back to Windows Speech Synthesis.
+
+### Using Text-to-Speech
+
 1. Look for the 🔊 button next to any Bricky response
-2. Click to hear the message read aloud
+2. Click to hear the message read aloud with a natural voice
 3. Click again to stop playback if needed
+
+**No setup required** - just works out of the box! 🎉
 
 ---
 

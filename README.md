@@ -30,9 +30,21 @@ The core feature that makes Bricky powerful:
 📚 **[Full Content Indexing Details](dotnet-mcp-server/FULL_CONTENT.md)**  
 📚 **[Cache System Documentation](dotnet-mcp-server/CACHE.md)**
 
-### 💬 Additional Features
+### 💬 Chat Interfaces
 
-**Console Chat Mode** - Standalone chat interface for testing
+**BrickyChat GUI** - Modern WPF chat application
+```powershell
+cd BrickyChat
+.\bricky.ps1
+```
+- Clippy-style friendly assistant with speech bubble  
+- Visual chat history
+- 🔊 Text-to-speech accessibility support
+- Perfect for end users and demos
+
+📚 **[BrickyChat Documentation](BrickyChat/README.md)**
+
+**Console Chat Mode** - Terminal-based interface
 ```powershell
 cd dotnet-mcp-server
 .\chat.ps1
@@ -40,6 +52,7 @@ cd dotnet-mcp-server
 - Test your LLM configuration
 - Experiment with BuilderTrend queries
 - Debug search results
+- Perfect for development and testing
 
 📚 **[Console Chat Documentation](dotnet-mcp-server/CONSOLE_CHAT.md)**
 
@@ -110,14 +123,24 @@ The server communicates via stdin/stdout using JSON-RPC 2.0 protocol, making it 
 
 ```
 Bricky/
-├── dotnet-mcp-server/           # Main MCP server
+├── BrickyChat/                  # GUI Chat Application (WPF)
+│   ├── MainWindow.xaml          # UI layout
+│   ├── MainWindow.xaml.cs       # Chat logic
+│   ├── App.xaml                 # WPF styles
+│   ├── BrickyChatApp.cs         # Entry point
+│   ├── BrickyChat.csproj        # Project file
+│   ├── assets/BrickyV1.png      # Mascot image
+│   └── README.md                # BrickyChat docs
+├── dotnet-mcp-server/           # MCP Server & Shared Services
 │   ├── Program.cs               # MCP protocol implementation
 │   ├── BTDocumentationService.cs # BuilderTrend crawler & search
 │   ├── SemanticSearchService.cs  # Semantic search engine
 │   ├── LLMService.cs            # LLM integration layer
 │   ├── EmbeddingCache.cs        # Persistent cache management
+│   ├── ConsoleChat.cs           # Console chat interface
 │   ├── appsettings.example.json # Configuration template
-│   ├── McpServer.csproj         # Project file
+│   ├── McpServer.csproj         # MCP Server project
+│   ├── ChatConsole.csproj       # Console chat project
 │   └── cache/                   # Cached embeddings (auto-created)
 └── README.md                    # This file
 ```
