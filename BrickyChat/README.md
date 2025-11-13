@@ -171,45 +171,101 @@ Bricky: 🤔 Hmm, I couldn't find anything about that in the BuilderTrend
 
 ## 📦 Dependencies
 
+### .NET Dependencies
 - .NET 8.0 Windows SDK
 - HtmlAgilityPack 1.11.61
-- System.Speech 8.0.0 (for text-to-speech accessibility)
+- System.Speech 8.0.0 (fallback text-to-speech)
+- NAudio 2.2.1 (audio playback for MP3 files)
 - Ollama running locally (llama3.2 model)
 - Existing service files from MCP server project
 
+### Python Dependencies (for Text-to-Speech)
+- Python 3.7+ (required for natural TTS)
+- gTTS (Google Text-to-Speech library)
+
+**Install Python dependencies:**
+```bash
+pip install gTTS
+```
+
+**Note**: If you get an SSL error with Python 3.7, also run:
+```bash
+pip install "urllib3<2"
+```
+
 ## ♿ Accessibility Features
 
-Bricky Chat includes built-in accessibility support:
+Bricky Chat includes built-in accessibility support with **natural-sounding text-to-speech**!
 
-- **Natural Text-to-Speech** 🎙️: Every Bricky response includes a 🔊 play button
-- **Free Neural Voices**: Uses Microsoft Edge TTS (no API key required!)
-- **Keyboard Navigation**: Full keyboard support for all interactions
-- **Screen Reader Friendly**: Properly labeled controls and tooltips
-- **High Contrast**: Clear visual separation between user and assistant messages
-- **Hover Effects**: Visual feedback for interactive elements
+- **🎙️ Natural Text-to-Speech**: Play buttons on BOTH the main speech bubble AND conversation history
+- **🆓 Free & Natural**: Uses Google Text-to-Speech - sounds human, not robotic!
+- **⌨️ Keyboard Navigation**: Full keyboard support for all interactions
+- **👀 Screen Reader Friendly**: Properly labeled controls and tooltips
+- **🎨 High Contrast**: Clear visual separation between user and assistant messages
+- **✨ Hover Effects**: Visual feedback for interactive elements
 
-### Text-to-Speech Features
+### 🔊 Text-to-Speech Features
 
-**🆓 FREE Natural Voice (Default)**
+**Two Play Buttons Available:**
+1. **Main Speech Bubble** - Large 🔊 button next to Bricky at the top
+2. **Conversation History** - Small 🔊 button next to each response in the history panel
 
-BrickyChat uses **Microsoft Edge TTS** - completely free with human-like neural voices!
+**🆓 FREE Natural Voice**
 
-- **Voice**: Jenny Neural (en-US) - friendly, natural female voice
-- **Quality**: Neural TTS - sounds like a real person, not robotic
+BrickyChat uses **Google Text-to-Speech (gTTS)** - completely free with natural-sounding voices!
+
+- **Voice**: Google's neural TTS voice (en-US)
+- **Quality**: Natural, human-like speech - NOT robotic
 - **Cost**: FREE - no API key or account required
-- **Works Offline**: No (requires internet connection)
+- **Works**: Requires internet connection (calls Google's free API)
 
 **Automatic Fallback**
 
-If Edge TTS fails (no internet), automatically falls back to Windows Speech Synthesis.
+If Google TTS fails (no internet or Python not installed), automatically falls back to Windows Speech Synthesis.
 
-### Using Text-to-Speech
+### 🚀 Setting Up Text-to-Speech
 
-1. Look for the 🔊 button next to any Bricky response
-2. Click to hear the message read aloud with a natural voice
-3. Click again to stop playback if needed
+**Prerequisites:**
+1. **Python 3.7 or higher** must be installed
+   - Download from [python.org](https://www.python.org/downloads/)
+   - Make sure to check "Add Python to PATH" during installation
 
-**No setup required** - just works out of the box! 🎉
+2. **Install gTTS library:**
+   ```bash
+   pip install gTTS
+   ```
+
+3. **For Python 3.7 users with SSL errors:**
+   ```bash
+   pip install "urllib3<2"
+   ```
+
+**Verification:**
+Test that gTTS is working by running this in PowerShell from the BrickyChat directory:
+```powershell
+python gtts_helper.py "Hello world" "test.mp3"
+```
+If successful, it will create a `test.mp3` file with audio.
+
+### 💡 Using Text-to-Speech
+
+**Main Speech Bubble:**
+1. Ask Bricky a question
+2. Click the large 🔊 button next to Bricky's speech bubble at the top
+3. Hear the response in natural-sounding audio
+
+**Conversation History:**
+1. Open the conversation history panel (click the ◀ button on the right)
+2. Click any 🔊 button next to previous responses
+3. Hear that specific message read aloud
+
+**Playback Controls:**
+- Click 🔊 to start playback
+- Click 🔊 again to stop current playback
+
+**First Use:**
+- First playback may take 1-2 seconds to generate audio
+- Subsequent playbacks are faster (audio is cached temporarily)
 
 ---
 
