@@ -78,6 +78,36 @@ Semantic search requires an LLM for generating embeddings. Choose from:
 
 **For Developers**: Integrate BuilderTrend documentation search into your applications via the MCP protocol.
 
+## 🚀 Quick Start: VS Code Integration
+
+Want to use Bricky directly in VS Code with GitHub Copilot? It's easy!
+
+**1. Add to VS Code settings:**
+```json
+{
+  "github.copilot.chat.mcp.servers": {
+    "bricky": {
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "<YOUR_PATH>\\Bricky\\dotnet-mcp-server\\McpServer.csproj"
+      ]
+    }
+  }
+}
+```
+
+**2. Restart VS Code**
+
+**3. Ask Bricky in Copilot Chat:**
+```
+@bricky search BuilderTrend documentation for "how to add users"
+```
+
+📚 **[Complete VS Code Setup Guide](QUICK_START_VSCODE.md)**  
+📚 **[Detailed MCP Configuration](MCP_SETUP.md)**
+
 ## Prerequisites
 
 - .NET 8.0 SDK or later

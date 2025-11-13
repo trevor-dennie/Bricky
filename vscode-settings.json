@@ -1,0 +1,12 @@
+{
+  "github.copilot.chat.mcp.servers": {
+    "bricky": {
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "c:\\Users\\trevor.Dennie\\source\\repos\\trevor-dennie\\Bricky\\dotnet-mcp-server\\McpServer.csproj"
+      ]
+    }
+  }
+}
