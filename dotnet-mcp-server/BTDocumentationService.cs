@@ -15,8 +15,20 @@ public class BTDocumentationService
     private List<HelpArticle>? _cachedArticles;
     private DateTime? _cacheTime;
     private readonly TimeSpan _cacheExpiration = TimeSpan.FromHours(1);
+    private readonly LLMService? _llmService;
+    private SemanticSearchService? _semanticSearch;
+    private bool _isSemanticIndexed = false;
 
-    public async Task<string> SearchDocumentationAsync(string query)
+    public BTDocumentationService(LLMService? llmService = null)
+    {
+        _llmService = llmService;
+        if (_llmService != null)
+        {
+            _semanticSearch = new SemanticSearchService(_llmService);
+        }
+    }
+
+    public async Task<string> SearchDocumentationAsync(string query, bool useSemanticSearch = true)
     {
         try
         {
@@ -28,8 +40,49 @@ public class BTDocumentationService
                 return "No articles found. The BuilderTrend help site may be unavailable.";
             }
 
+            List<SearchResult> results;
+
+            // Try semantic search first if enabled and available
+            if (useSemanticSearch && _semanticSearch != null && _llmService != null)
+            {
+                try
+                {
+                    // Index articles if not already done
+                    if (!_isSemanticIndexed)
+                    {
+                        await LogAsync("Performing first-time semantic indexing...");
+                        await _semanticSearch.IndexArticlesAsync(articles);
+                        _isSemanticIndexed = true;
+                        await LogAsync("Semantic indexing complete!");
+                    }
+
+                    await LogAsync("Using semantic search...");
+                    results = await _semanticSearch.SearchAsync(query, 5);
+                    
+                    if (results.Count > 0)
+                    {
+                        await LogAsync($"Semantic search found {results.Count} results");
+                    }
+                    else
+                    {
+                        await LogAsync("Semantic search found no results, falling back to keyword search");
+                        results = SearchArticles(articles, query);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await LogAsync($"Semantic search failed: {ex.Message}, falling back to keyword search");
+                    results = SearchArticles(articles, query);
+                }
+            }
+            else
+            {
+                await LogAsync("Using keyword search...");
+                results = SearchArticles(articles, query);
+            }
+
             // Search articles for relevant content
-            var results = SearchArticles(articles, query);
+            // var results = SearchArticles(articles, query);
 
             if (results.Count == 0)
             {
@@ -38,7 +91,10 @@ public class BTDocumentationService
 
             // Format results
             var sb = new StringBuilder();
-            sb.AppendLine($"Found {results.Count} relevant article(s) for '{query}':\n");
+            var searchMethod = (useSemanticSearch && _semanticSearch != null && _isSemanticIndexed) 
+                ? "semantic" 
+                : "keyword";
+            sb.AppendLine($"Found {results.Count} relevant article(s) for '{query}' (using {searchMethod} search):\n");
 
             int count = 1;
             foreach (var result in results.Take(5)) // Limit to top 5 results

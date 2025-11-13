@@ -25,8 +25,18 @@ Interactive command-line interface for direct LLM conversations:
 
 - **echo**: Echoes back a message
 - **get_time**: Returns the current server time
-- **bt_documentation**: Searches BuilderTrend help articles for relevant information
+- **bt_documentation**: 🔍 Searches BuilderTrend help articles with **semantic search** (meaning-based)
 - **ask_llm**: Ask questions to a free-tier LLM (AI assistant)
+
+### 🔍 Semantic Search 🆕
+
+BuilderTrend documentation searches now use **semantic search** powered by your LLM:
+- Understands meaning, not just keywords
+- Finds related concepts and synonyms
+- Better relevance ranking
+- Automatic fallback to keyword search
+
+📚 **[Semantic Search Documentation](SEMANTIC_SEARCH.md)**
 
 ### 🤖 LLM Integration
 

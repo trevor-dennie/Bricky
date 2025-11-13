@@ -46,12 +46,6 @@ class Program
     }
 }
 
-public class LLMConfig
-{
-    public LLMProvider Provider { get; set; }
-    public string? ApiKey { get; set; }
-    public string? Model { get; set; }
-}
 
 public class MCPServer
 {
@@ -67,7 +61,6 @@ public class MCPServer
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             WriteIndented = false
         };
-        _btDocService = new BTDocumentationService();
         
         // Initialize LLM service if configured
         if (config != null)
@@ -81,6 +74,9 @@ public class MCPServer
                 Console.Error.WriteLine($"Warning: Could not initialize LLM service: {ex.Message}");
             }
         }
+        
+        // Initialize BTDocService with LLM service for semantic search
+        _btDocService = new BTDocumentationService(_llmService);
     }
 
     public async Task RunAsync()
