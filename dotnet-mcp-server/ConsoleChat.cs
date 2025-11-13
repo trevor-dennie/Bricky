@@ -215,11 +215,35 @@ class ConsoleChat
                         stopwatch.Stop();
                         
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"✅ Results (in {stopwatch.Elapsed.TotalSeconds:F1}s):");
+                        Console.WriteLine($"✅ Search completed in {stopwatch.Elapsed.TotalSeconds:F1}s");
                         Console.ResetColor();
                         Console.WriteLine();
                         
+                        // Show raw results
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.WriteLine("📚 Top Articles Found:");
+                        Console.ResetColor();
                         Console.WriteLine(results);
+                        Console.WriteLine();
+                        
+                        // Generate AI response based on search results
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("💬 Generating AI response...");
+                        Console.ResetColor();
+                        Console.WriteLine();
+                        
+                        var aiPrompt = $@"Based on the following BuilderTrend documentation search results, please provide a helpful, conversational answer to the user's question: ""{searchQuery}""
+
+{results}
+
+Provide a clear, practical answer that synthesizes the information from these articles. If the articles don't fully answer the question, mention what information is available and suggest what the user might want to explore further.";
+
+                        var aiResponse = await llmService.ChatAsync(aiPrompt, systemPrompt);
+                        
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.Write("AI: ");
+                        Console.ResetColor();
+                        Console.WriteLine(aiResponse);
                         Console.WriteLine();
                     }
                     catch (Exception ex)
