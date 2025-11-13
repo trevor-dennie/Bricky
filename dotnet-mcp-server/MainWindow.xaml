@@ -3,108 +3,195 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Chat with Bricky" 
         Height="700" 
-        Width="600"
+        Width="900"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}">
     
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="300"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="450"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
         
-        <!-- Top section with Bricky mascot and speech bubble -->
-        <Grid Grid.Row="0" Background="White">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <!-- LEFT SIDE: Bricky, thinking indicator, current prompt, and input -->
+        <Grid Grid.Column="0" Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
             
-            <!-- Bricky mascot image (now on the left) -->
-            <Image Grid.Column="0" 
-                   Source="assets/BrickyV1.png"
-                   Width="200"
-                   Height="250"
-                   Margin="20,20,10,20"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Left"
-                   Stretch="Uniform"/>
-            
-            <!-- Speech bubble area (now on the right) -->
-            <Grid Grid.Column="1" 
-                  Margin="10,20,20,20"
-                  VerticalAlignment="Center"
-                  HorizontalAlignment="Left">
+            <!-- Bricky and speech bubble at top -->
+            <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 
-                <!-- Speech bubble tail (pointing left toward Bricky) -->
-                <Canvas Grid.Column="0" Width="20" Height="150" VerticalAlignment="Center">
-                    <Polygon Points="20,75 0,70 15,85"
-                            Fill="White"
-                            Stroke="{StaticResource BorderBrush}"
-                            StrokeThickness="2"/>
-                </Canvas>
+                <!-- Bricky mascot image -->
+                <Image Grid.Column="0" 
+                       Source="assets/BrickyV1.png"
+                       Width="150"
+                       Height="190"
+                       Margin="0,0,10,0"
+                       VerticalAlignment="Top"
+                       HorizontalAlignment="Left"
+                       Stretch="Uniform"/>
                 
-                <!-- Main speech bubble -->
-                <Border Grid.Column="1"
-                        Style="{StaticResource SpeechBubbleStyle}"
-                        MinWidth="250"
-                        MaxWidth="350"
-                        MinHeight="60"
-                        MaxHeight="200"
-                        VerticalAlignment="Center">
-                    <TextBlock x:Name="SpeechText"
-                              Text="👋 Hi! I'm Bricky, your BuilderTrend assistant! Ask me anything!"
+                <!-- Speech bubble area -->
+                <Grid Grid.Column="1" 
+                      Margin="0,10,0,0"
+                      VerticalAlignment="Top"
+                      HorizontalAlignment="Left">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Speech bubble tail -->
+                    <Canvas Grid.Column="0" Width="20" Height="100" VerticalAlignment="Top" Margin="0,20,0,0">
+                        <Polygon Points="20,30 0,25 15,40"
+                                Fill="White"
+                                Stroke="{StaticResource BorderBrush}"
+                                StrokeThickness="2"/>
+                    </Canvas>
+                    
+                    <!-- Main speech bubble -->
+                    <Border Grid.Column="1"
+                            Style="{StaticResource SpeechBubbleStyle}"
+                            MinWidth="200"
+                            MaxWidth="250"
+                            MinHeight="60"
+                            MaxHeight="200"
+                            VerticalAlignment="Top">
+                        <TextBlock x:Name="SpeechText"
+                                  Text="👋 Hi! I'm Bricky, your BuilderTrend assistant! Ask me anything!"
+                                  TextWrapping="Wrap"
+                                  FontSize="13"
+                                  Foreground="{StaticResource TextBrush}"
+                                  LineHeight="18"/>
+                    </Border>
+                </Grid>
+            </Grid>
+            
+            <!-- Thinking indicator -->
+            <Border Grid.Row="1" 
+                    Margin="0,20,0,0"
+                    Background="White"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="15,10"
+                    Visibility="Collapsed"
+                    x:Name="ThinkingIndicator">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="💭" FontSize="16" Margin="0,0,8,0"/>
+                    <TextBlock x:Name="ThinkingText"
+                              Text="Bricky is thinking..."
+                              Foreground="{StaticResource TextBrush}"
+                              FontStyle="Italic"
+                              FontSize="13"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- Current prompt display -->
+            <Border Grid.Row="2"
+                    Margin="0,20,0,0"
+                    Background="White"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="2"
+                    CornerRadius="10"
+                    Padding="15"
+                    Visibility="Collapsed"
+                    x:Name="CurrentPromptContainer">
+                <StackPanel>
+                    <TextBlock Text="Your Question:" 
+                              FontWeight="SemiBold"
+                              FontSize="12"
+                              Foreground="#666666"
+                              Margin="0,0,0,8"/>
+                    <TextBlock x:Name="CurrentPromptText"
                               TextWrapping="Wrap"
                               FontSize="14"
                               Foreground="{StaticResource TextBrush}"
                               LineHeight="20"/>
-                </Border>
-            </Grid>
+                </StackPanel>
+            </Border>
+            
+            <!-- Spacer -->
+            <Grid Grid.Row="3"/>
+            
+            <!-- Input area at bottom -->
+            <Border Grid.Row="4" 
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="2"
+                    Background="White"
+                    CornerRadius="10"
+                    Padding="15">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBox x:Name="InputBox"
+                             Grid.Row="0"
+                             Style="{StaticResource InputBoxStyle}"
+                             KeyDown="InputBox_KeyDown"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="False"
+                             MinHeight="40"
+                             MaxHeight="120"
+                             BorderThickness="0"
+                             VerticalScrollBarVisibility="Auto"/>
+                    
+                    <Button x:Name="SendButton"
+                            Grid.Row="1"
+                            Content="Send"
+                            Style="{StaticResource SendButtonStyle}"
+                            Click="SendButton_Click"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Stretch"/>
+                </Grid>
+            </Border>
         </Grid>
         
-        <!-- Chat history area -->
-        <ScrollViewer Grid.Row="1" 
-                      x:Name="ChatScrollViewer"
-                      VerticalScrollBarVisibility="Auto"
-                      Padding="20">
-            <StackPanel x:Name="ChatHistory">
-                <!-- Chat messages will be added here dynamically -->
-            </StackPanel>
-        </ScrollViewer>
-        
-        <!-- Input area -->
-        <Border Grid.Row="2" 
-                BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="0,2,0,0"
-                Background="White"
-                Padding="20">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                
-                <TextBox x:Name="InputBox"
-                         Grid.Column="0"
-                         Style="{StaticResource InputBoxStyle}"
-                         KeyDown="InputBox_KeyDown"
-                         TextWrapping="Wrap"
-                         AcceptsReturn="False"
-                         MaxHeight="100"/>
-                
-                <Button x:Name="SendButton"
-                        Grid.Column="1"
-                        Content="Send"
-                        Style="{StaticResource SendButtonStyle}"
-                        Click="SendButton_Click"
-                        Margin="10,0,0,0"
-                        MinWidth="80"/>
-            </Grid>
-        </Border>
+        <!-- RIGHT SIDE: Conversation history -->
+        <Grid Grid.Column="1" Margin="0,20,20,20">
+            <Border BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="2"
+                    Background="White"
+                    CornerRadius="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Header -->
+                    <Border Grid.Row="0" 
+                            Background="{StaticResource PrimaryBrush}"
+                            CornerRadius="8,8,0,0"
+                            Padding="15,10">
+                        <TextBlock Text="Conversation History" 
+                                  FontWeight="SemiBold"
+                                  FontSize="14"
+                                  Foreground="White"/>
+                    </Border>
+                    
+                    <!-- Chat history -->
+                    <ScrollViewer Grid.Row="1" 
+                                  x:Name="ChatScrollViewer"
+                                  VerticalScrollBarVisibility="Auto"
+                                  Padding="15">
+                        <StackPanel x:Name="ChatHistory">
+                            <!-- Chat messages will be added here dynamically -->
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

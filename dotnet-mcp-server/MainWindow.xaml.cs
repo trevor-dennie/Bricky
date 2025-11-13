@@ -70,14 +70,17 @@ Remember: You're a friendly mascot assistant, not a formal documentation bot!";
         SendButton.IsEnabled = false;
         InputBox.IsEnabled = false;
 
-        // Add user message to chat
+        // Show current prompt
+        ShowCurrentPrompt(message);
+        
+        // Add user message to chat history
         AddUserMessage(message);
         
         // Clear input
         InputBox.Text = string.Empty;
 
-        // Show typing indicator
-        ShowTypingIndicator();
+        // Show thinking indicator
+        ShowThinkingIndicator();
 
         try
         {
@@ -133,7 +136,7 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
         }
         finally
         {
-            HideTypingIndicator();
+            HideThinkingIndicator();
             _isProcessing = false;
             SendButton.IsEnabled = true;
             InputBox.IsEnabled = true;
@@ -235,41 +238,41 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
         ScrollToBottom();
     }
 
-    private TextBlock? _typingIndicator;
-
-    private void ShowTypingIndicator()
+    private void ShowCurrentPrompt(string prompt)
     {
-        _typingIndicator = new TextBlock
+        Dispatcher.Invoke(() =>
         {
-            Text = "Bricky is thinking...",
-            Foreground = new SolidColorBrush(Color.FromRgb(158, 158, 158)),
-            FontStyle = FontStyles.Italic,
-            Margin = new Thickness(10, 5, 50, 5),
-            HorizontalAlignment = HorizontalAlignment.Left
-        };
-
-        ChatHistory.Children.Add(_typingIndicator);
-        ScrollToBottom();
-
-        // Animate dots
-        var animation = new DoubleAnimation
-        {
-            From = 0.3,
-            To = 1.0,
-            Duration = TimeSpan.FromMilliseconds(600),
-            AutoReverse = true,
-            RepeatBehavior = RepeatBehavior.Forever
-        };
-        _typingIndicator.BeginAnimation(OpacityProperty, animation);
+            CurrentPromptText.Text = prompt;
+            CurrentPromptContainer.Visibility = Visibility.Visible;
+        });
     }
 
-    private void HideTypingIndicator()
+    private void ShowThinkingIndicator()
     {
-        if (_typingIndicator != null)
+        Dispatcher.Invoke(() =>
         {
-            ChatHistory.Children.Remove(_typingIndicator);
-            _typingIndicator = null;
-        }
+            ThinkingIndicator.Visibility = Visibility.Visible;
+            
+            // Animate the thinking indicator
+            var animation = new DoubleAnimation
+            {
+                From = 0.5,
+                To = 1.0,
+                Duration = TimeSpan.FromMilliseconds(600),
+                AutoReverse = true,
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+            ThinkingText.BeginAnimation(OpacityProperty, animation);
+        });
+    }
+
+    private void HideThinkingIndicator()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            ThinkingIndicator.Visibility = Visibility.Collapsed;
+            ThinkingText.BeginAnimation(OpacityProperty, null);
+        });
     }
 
     private void ScrollToBottom()
