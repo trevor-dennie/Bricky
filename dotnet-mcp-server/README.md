@@ -1,14 +1,28 @@
 # .NET MCP Server
 
-A basic Model Context Protocol (MCP) server implementation in .NET 8.
+A Model Context Protocol (MCP) server implementation in .NET 8 with integrated LLM support.
 
 ## Overview
 
-This is a simple MCP server that demonstrates the core concepts of the Model Context Protocol. It implements a JSON-RPC interface over stdio and provides three tools:
+This MCP server demonstrates the core concepts of the Model Context Protocol with practical tools including BuilderTrend documentation search and **LLM integration** (Ollama, OpenRouter, or Groq).
+
+## Features
+
+### Available Tools
 
 - **echo**: Echoes back a message
 - **get_time**: Returns the current server time
 - **bt_documentation**: Searches BuilderTrend help articles for relevant information
+- **ask_llm**: 🆕 Ask questions to a free-tier LLM (AI assistant)
+
+### 🤖 LLM Integration
+
+Connect to free LLM providers:
+- **Ollama** (local, unlimited, private)
+- **OpenRouter** (cloud, free tier available)
+- **Groq** (cloud, fast, generous free tier)
+
+📚 **[See LLM Setup Guide](LLM_SETUP.md)** for detailed configuration instructions.
 
 ## Prerequisites
 
@@ -34,12 +48,41 @@ The server communicates via stdin/stdout using JSON-RPC 2.0 protocol.
 ```
 dotnet-mcp-server/
 ├── Program.cs                  # Main server implementation
+├── LLMService.cs               # LLM integration service
 ├── BTDocumentationService.cs   # BuilderTrend help article crawler
+├── appsettings.json            # LLM configuration
 ├── McpServer.csproj            # Project file
+├── LLM_SETUP.md               # LLM setup guide
 ├── Properties/
 │   └── launchSettings.json     # Launch configuration
 └── README.md                   # This file
 ```
+
+## Quick Start with LLM
+
+1. **Choose your LLM provider** (Ollama recommended for beginners):
+   ```powershell
+   # Install Ollama from https://ollama.com
+   ollama pull llama3.2
+   ```
+
+2. **Configure `appsettings.json`**:
+   ```json
+   {
+     "LLM": {
+       "Provider": "Ollama",
+       "ApiKey": "",
+       "Model": "llama3.2"
+     }
+   }
+   ```
+
+3. **Run the server**:
+   ```powershell
+   dotnet run
+   ```
+
+See **[LLM_SETUP.md](LLM_SETUP.md)** for detailed setup instructions for all providers.
 
 ## BTDocumentation Tool
 

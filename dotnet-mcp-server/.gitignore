@@ -3,3 +3,10 @@ obj/
 *.user
 *.suo
 .vs/
+
+# Configuration files with API keys
+appsettings.json
+appsettings.*.json
+
+# Keep the example configuration
+!appsettings.example.json

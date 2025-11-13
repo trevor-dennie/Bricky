@@ -7,17 +7,59 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        var server = new MCPServer();
+        // Load configuration
+        var config = LoadConfiguration();
+        
+        var server = new MCPServer(config);
         await server.RunAsync();
     }
+
+    private static LLMConfig LoadConfiguration()
+    {
+        try
+        {
+            if (File.Exists("appsettings.json"))
+            {
+                var json = File.ReadAllText("appsettings.json");
+                var doc = JsonDocument.Parse(json);
+                var llmSection = doc.RootElement.GetProperty("LLM");
+                
+                var providerStr = llmSection.GetProperty("Provider").GetString() ?? "Ollama";
+                var apiKey = llmSection.GetProperty("ApiKey").GetString();
+                var model = llmSection.GetProperty("Model").GetString();
+
+                return new LLMConfig
+                {
+                    Provider = Enum.Parse<LLMProvider>(providerStr, true),
+                    ApiKey = string.IsNullOrWhiteSpace(apiKey) ? null : apiKey,
+                    Model = string.IsNullOrWhiteSpace(model) ? null : model
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Warning: Could not load configuration: {ex.Message}");
+        }
+
+        // Default to Ollama
+        return new LLMConfig { Provider = LLMProvider.Ollama };
+    }
+}
+
+public class LLMConfig
+{
+    public LLMProvider Provider { get; set; }
+    public string? ApiKey { get; set; }
+    public string? Model { get; set; }
 }
 
 public class MCPServer
 {
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly BTDocumentationService _btDocService;
+    private readonly LLMService? _llmService;
 
-    public MCPServer()
+    public MCPServer(LLMConfig? config = null)
     {
         _jsonOptions = new JsonSerializerOptions
         {
@@ -26,6 +68,19 @@ public class MCPServer
             WriteIndented = false
         };
         _btDocService = new BTDocumentationService();
+        
+        // Initialize LLM service if configured
+        if (config != null)
+        {
+            try
+            {
+                _llmService = new LLMService(config.Provider, config.ApiKey, config.Model);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Warning: Could not initialize LLM service: {ex.Message}");
+            }
+        }
     }
 
     public async Task RunAsync()
@@ -133,61 +188,91 @@ public class MCPServer
 
     private JsonRPCResponse HandleToolsList(JsonRPCRequest request)
     {
+        var tools = new List<object>
+        {
+            new
+            {
+                name = "echo",
+                description = "Echoes back the provided message",
+                inputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        message = new
+                        {
+                            type = "string",
+                            description = "The message to echo back"
+                        }
+                    },
+                    required = new[] { "message" }
+                }
+            },
+            new
+            {
+                name = "get_time",
+                description = "Returns the current server time",
+                inputSchema = new
+                {
+                    type = "object",
+                    properties = new { }
+                }
+            },
+            new
+            {
+                name = "bt_documentation",
+                description = "Searches BuilderTrend help articles for relevant information based on a query. Returns the top matching articles with URLs and snippets.",
+                inputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        query = new
+                        {
+                            type = "string",
+                            description = "The search query or question to find relevant BuilderTrend help articles"
+                        }
+                    },
+                    required = new[] { "query" }
+                }
+            }
+        };
+
+        // Add LLM tool if service is available
+        if (_llmService != null)
+        {
+            tools.Add(new
+            {
+                name = "ask_llm",
+                description = "Ask a question to the configured LLM (AI assistant). Useful for getting AI-generated answers, analysis, or assistance with various tasks.",
+                inputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        prompt = new
+                        {
+                            type = "string",
+                            description = "The question or prompt to send to the LLM"
+                        },
+                        systemPrompt = new
+                        {
+                            type = "string",
+                            description = "Optional system prompt to set context or instructions for the LLM"
+                        }
+                    },
+                    required = new[] { "prompt" }
+                }
+            });
+        }
+
         return new JsonRPCResponse
         {
             Jsonrpc = "2.0",
             Id = request.Id,
             Result = new
             {
-                tools = new object[]
-                {
-                    new
-                    {
-                        name = "echo",
-                        description = "Echoes back the provided message",
-                        inputSchema = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                message = new
-                                {
-                                    type = "string",
-                                    description = "The message to echo back"
-                                }
-                            },
-                            required = new[] { "message" }
-                        }
-                    },
-                    new
-                    {
-                        name = "get_time",
-                        description = "Returns the current server time",
-                        inputSchema = new
-                        {
-                            type = "object",
-                            properties = new { }
-                        }
-                    },
-                    new
-                    {
-                        name = "bt_documentation",
-                        description = "Searches BuilderTrend help articles for relevant information based on a query. Returns the top matching articles with URLs and snippets.",
-                        inputSchema = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                query = new
-                                {
-                                    type = "string",
-                                    description = "The search query or question to find relevant BuilderTrend help articles"
-                                }
-                            },
-                            required = new[] { "query" }
-                        }
-                    }
-                }
+                tools = tools.ToArray()
             }
         };
     }
@@ -210,6 +295,7 @@ public class MCPServer
                 "echo" => HandleEchoTool(arguments),
                 "get_time" => HandleGetTimeTool(),
                 "bt_documentation" => await HandleBTDocumentationToolAsync(arguments),
+                "ask_llm" => await HandleAskLLMToolAsync(arguments),
                 _ => throw new Exception($"Unknown tool: {toolName}")
             };
 
@@ -291,6 +377,47 @@ public class MCPServer
 
         await LogAsync($"Searching BuilderTrend documentation for: {query}");
         var result = await _btDocService.SearchDocumentationAsync(query);
+        
+        return new
+        {
+            content = new[]
+            {
+                new
+                {
+                    type = "text",
+                    text = result
+                }
+            }
+        };
+    }
+
+    private async Task<object> HandleAskLLMToolAsync(JsonElement? arguments)
+    {
+        if (_llmService == null)
+        {
+            throw new Exception("LLM service is not configured. Please check appsettings.json");
+        }
+
+        if (arguments == null || !arguments.Value.TryGetProperty("prompt", out var promptElement))
+        {
+            throw new Exception("Missing required parameter: prompt");
+        }
+
+        var prompt = promptElement.GetString() ?? "";
+        
+        if (string.IsNullOrWhiteSpace(prompt))
+        {
+            throw new Exception("Prompt parameter cannot be empty");
+        }
+
+        string? systemPrompt = null;
+        if (arguments.Value.TryGetProperty("systemPrompt", out var systemElement))
+        {
+            systemPrompt = systemElement.GetString();
+        }
+
+        await LogAsync($"Sending prompt to LLM: {prompt}");
+        var result = await _llmService.ChatAsync(prompt, systemPrompt);
         
         return new
         {
