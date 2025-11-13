@@ -67,10 +67,10 @@ public class SemanticSearchService
                     // Use full content for better semantic understanding
                     textToEmbed = $"{article.Title}. {article.FullContent}";
                     
-                    // Limit to 2000 chars for embedding (to avoid overwhelming the LLM)
-                    if (textToEmbed.Length > 2000)
+                    // Limit to 100000 chars for embedding (allow full articles)
+                    if (textToEmbed.Length > 100000)
                     {
-                        textToEmbed = textToEmbed.Substring(0, 2000);
+                        textToEmbed = textToEmbed.Substring(0, 100000);
                     }
                 }
                 else

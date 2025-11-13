@@ -349,10 +349,10 @@ public class BTDocumentationService
 
                     var fullContent = CleanText(contentNode.InnerText);
                     
-                    // Store full content, but limit to reasonable size
-                    if (fullContent.Length > 10000)
+                    // Store full content, allow up to 100KB per article
+                    if (fullContent.Length > 100000)
                     {
-                        article.FullContent = fullContent.Substring(0, 10000) + "...";
+                        article.FullContent = fullContent.Substring(0, 100000) + "...";
                     }
                     else
                     {

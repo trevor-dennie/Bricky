@@ -15,7 +15,7 @@ Content: ~50 characters
 ```
 Article Title: "How to Create Invoices"  
 Indexed Text: "How to Create Invoices. [Full article content including all steps, examples, tips...]"
-Content: Up to 2000 characters from actual article
+Content: Up to 100,000 characters from actual article (full articles)
 ```
 
 ## 🎯 Benefits
@@ -103,25 +103,24 @@ Automatically removes:
 ### Content Size Limit
 ```csharp
 // In BTDocumentationService.cs
-if (fullContent.Length > 10000)
+if (fullContent.Length > 100000)
 {
-    article.FullContent = fullContent.Substring(0, 10000) + "...";
+    article.FullContent = fullContent.Substring(0, 100000) + "...";
 }
 ```
 
 ### Embedding Text Limit
 ```csharp
 // In SemanticSearchService.cs  
-if (textToEmbed.Length > 2000)
+if (textToEmbed.Length > 100000)
 {
-    textToEmbed = textToEmbed.Substring(0, 2000);
+    textToEmbed = textToEmbed.Substring(0, 100000);
 }
 ```
 
-These limits prevent:
-- Overwhelming the LLM with too much text
-- Excessive memory usage
-- Very long embedding generation times
+These limits allow for complete articles while preventing:
+- Excessive memory usage for extremely long pages
+- Very long embedding generation times for edge cases
 
 ### Fetch Delay
 ```csharp
@@ -162,12 +161,12 @@ Reason: Found invoice/billing content INSIDE articles
 
 ## 🔄 Cache Version
 
-Cache version bumped to **v2** to invalidate old caches:
+Cache version bumped to **v3** for increased character limits:
 ```csharp
-private const int CACHE_VERSION = 2; // Was 1
+private const int CACHE_VERSION = 3; // Was 2
 ```
 
-Old caches (without FullContent) are automatically rejected and regenerated.
+Old caches (with 10KB/2KB limits) are automatically rejected and regenerated with 100KB limits.
 
 ## 🐛 Error Handling
 
