@@ -99,7 +99,7 @@ Remember: You're a friendly mascot assistant, not a formal documentation bot!";
         if (_isHistoryExpanded)
         {
             // Expand history
-            HistoryPanel.Width = 400;
+            HistoryPanel.Width = 380;
             HistoryContent.Visibility = Visibility.Visible;
             HistoryToggleIcon.Text = "▶";
         }
@@ -284,7 +284,7 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
         {
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Left,
-            Margin = new Thickness(10, 5, 50, 5)
+            Margin = new Thickness(5, 5, 5, 5)
         };
 
         var messageContainer = new Border
@@ -293,8 +293,8 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
             BorderBrush = new SolidColorBrush(Color.FromRgb(224, 224, 224)),
             BorderThickness = new Thickness(2),
             CornerRadius = new CornerRadius(15, 15, 15, 5),
-            Padding = new Thickness(15, 10, 15, 10),
-            MaxWidth = 400
+            Padding = new Thickness(12, 8, 12, 8),
+            MaxWidth = 270
         };
 
         var textBlock = new TextBlock
@@ -302,7 +302,8 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
             Text = "🧱 " + message,
             Foreground = new SolidColorBrush(Color.FromRgb(51, 51, 51)),
             TextWrapping = TextWrapping.Wrap,
-            FontSize = 14
+            FontSize = 14,
+            LineHeight = 20
         };
 
         messageContainer.Child = textBlock;
@@ -311,10 +312,11 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
         var playButton = new Button
         {
             Content = "🔊",
-            FontSize = 16,
-            Width = 32,
-            Height = 32,
-            Margin = new Thickness(8, 0, 0, 0),
+            FontSize = 14,
+            Width = 30,
+            Height = 30,
+            MinWidth = 30,
+            Margin = new Thickness(6, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Top,
             Background = new SolidColorBrush(Color.FromRgb(245, 245, 245)),
             BorderBrush = new SolidColorBrush(Color.FromRgb(224, 224, 224)),
