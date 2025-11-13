@@ -19,7 +19,7 @@ public class SemanticSearchService
     /// <summary>
     /// Generate embeddings for all articles
     /// </summary>
-    public async Task IndexArticlesAsync(List<HelpArticle> articles)
+    public async Task IndexArticlesAsync(List<HelpArticle> articles, Func<List<HelpArticle>, Task>? fetchContentCallback = null)
     {
         // Try to load from cache first
         var (cachedEmbeddings, cachedArticles) = await _cache.LoadAsync(_cacheExpiration);
@@ -43,7 +43,14 @@ public class SemanticSearchService
             }
         }
 
-        // No valid cache, generate embeddings
+        // No valid cache - need to fetch content and generate embeddings
+        if (fetchContentCallback != null)
+        {
+            Console.Error.WriteLine($"[Semantic] Fetching article content for indexing...");
+            await fetchContentCallback(articles);
+        }
+        
+        // Generate embeddings
         _articleEmbeddings = new Dictionary<string, float[]>();
         _indexedArticles = articles;
 

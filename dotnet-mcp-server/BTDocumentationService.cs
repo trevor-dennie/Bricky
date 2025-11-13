@@ -32,14 +32,6 @@ public class BTDocumentationService
     {
         try
         {
-            // Get or refresh articles cache
-            var articles = await GetArticlesAsync();
-            
-            if (articles.Count == 0)
-            {
-                return "No articles found. The BuilderTrend help site may be unavailable.";
-            }
-
             List<SearchResult> results;
 
             // Try semantic search first if enabled and available
@@ -51,7 +43,22 @@ public class BTDocumentationService
                     if (!_isSemanticIndexed)
                     {
                         await LogAsync("Loading semantic search index...");
-                        await _semanticSearch.IndexArticlesAsync(articles);
+                        
+                        // Get articles WITHOUT content first (just URLs for cache validation)
+                        var articles = await GetArticlesAsync(fetchContent: false);
+                        
+                        if (articles.Count == 0)
+                        {
+                            return "No articles found. The BuilderTrend help site may be unavailable.";
+                        }
+                        
+                        // IndexArticlesAsync will check cache and only fetch content if cache is invalid
+                        await _semanticSearch.IndexArticlesAsync(articles, async (arts) =>
+                        {
+                            await LogAsync("Fetching full content for articles...");
+                            await FetchArticleContentAsync(arts);
+                            await LogAsync("Article content fetching complete");
+                        });
                         _isSemanticIndexed = true;
                     }
 
@@ -65,18 +72,21 @@ public class BTDocumentationService
                     else
                     {
                         await LogAsync("Semantic search found no results, falling back to keyword search");
+                        var articles = await GetArticlesAsync(fetchContent: false);
                         results = SearchArticles(articles, query);
                     }
                 }
                 catch (Exception ex)
                 {
                     await LogAsync($"Semantic search failed: {ex.Message}, falling back to keyword search");
+                    var articles = await GetArticlesAsync(fetchContent: false);
                     results = SearchArticles(articles, query);
                 }
             }
             else
             {
                 await LogAsync("Using keyword search...");
+                var articles = await GetArticlesAsync(fetchContent: false);
                 results = SearchArticles(articles, query);
             }
 
@@ -117,7 +127,7 @@ public class BTDocumentationService
         }
     }
 
-    private async Task<List<HelpArticle>> GetArticlesAsync()
+    private async Task<List<HelpArticle>> GetArticlesAsync(bool fetchContent = false)
     {
         // Check cache
         if (_cachedArticles != null && _cacheTime.HasValue && 
@@ -211,8 +221,8 @@ public class BTDocumentationService
 
             await LogAsync($"Crawled {articles.Count} articles from BuilderTrend help site");
 
-            // Fetch full content for each article (for semantic search)
-            if (_llmService != null)
+            // Fetch full content for each article (for semantic search) - only if requested
+            if (fetchContent && _llmService != null)
             {
                 await LogAsync("Fetching full content for articles...");
                 await FetchArticleContentAsync(articles);
