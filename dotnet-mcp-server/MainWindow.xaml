@@ -1,0 +1,107 @@
+<Window x:Class="BrickyChat.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Chat with Bricky" 
+        Height="700" 
+        Width="600"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundBrush}">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="300"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Top section with Bricky mascot and speech bubble -->
+        <Grid Grid.Row="0" Background="White">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Speech bubble area -->
+            <Viewbox Grid.Column="0" 
+                     Margin="20"
+                     VerticalAlignment="Center"
+                     HorizontalAlignment="Right"
+                     MaxWidth="350">
+                <Grid>
+                    <!-- Speech bubble with tail -->
+                    <Canvas Width="400" Height="150">
+                        <!-- Main bubble -->
+                        <Border Canvas.Left="0" 
+                                Canvas.Top="0"
+                                Style="{StaticResource SpeechBubbleStyle}"
+                                MaxWidth="350"
+                                MinHeight="80">
+                            <TextBlock x:Name="SpeechText"
+                                      Text="👋 Hi! I'm Bricky, your BuilderTrend assistant! Ask me anything!"
+                                      TextWrapping="Wrap"
+                                      FontSize="16"
+                                      Foreground="{StaticResource TextBrush}"
+                                      LineHeight="24"/>
+                        </Border>
+                        
+                        <!-- Speech bubble tail (pointing right toward Bricky) -->
+                        <Polygon Points="350,100 380,105 360,120"
+                                Fill="White"
+                                Stroke="{StaticResource BorderBrush}"
+                                StrokeThickness="2"/>
+                    </Canvas>
+                </Grid>
+            </Viewbox>
+            
+            <!-- Bricky mascot image -->
+            <Image Grid.Column="1" 
+                   Source="assets/BrickyV1.png"
+                   Width="200"
+                   Height="250"
+                   Margin="10,20,20,20"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Right"
+                   Stretch="Uniform"/>
+        </Grid>
+        
+        <!-- Chat history area -->
+        <ScrollViewer Grid.Row="1" 
+                      x:Name="ChatScrollViewer"
+                      VerticalScrollBarVisibility="Auto"
+                      Padding="20">
+            <StackPanel x:Name="ChatHistory">
+                <!-- Chat messages will be added here dynamically -->
+            </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Input area -->
+        <Border Grid.Row="2" 
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,2,0,0"
+                Background="White"
+                Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBox x:Name="InputBox"
+                         Grid.Column="0"
+                         Style="{StaticResource InputBoxStyle}"
+                         KeyDown="InputBox_KeyDown"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="False"
+                         MaxHeight="100"/>
+                
+                <Button x:Name="SendButton"
+                        Grid.Column="1"
+                        Content="Send"
+                        Style="{StaticResource SendButtonStyle}"
+                        Click="SendButton_Click"
+                        Margin="10,0,0,0"
+                        MinWidth="80"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
