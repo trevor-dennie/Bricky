@@ -36,3 +36,14 @@ obj/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# Configuration files with API keys
+appsettings.json
+appsettings.*.json
+
+# Keep the example configuration
+!appsettings.example.json
+
+# Embedding cache
+cache/
+*.json.cache
