@@ -1,3 +1,4 @@
+using System.Speech.Synthesis;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,7 +12,9 @@ public partial class MainWindow : Window
 {
     private readonly LLMService _llmService;
     private readonly BTDocumentationService _btDocService;
+    private readonly SpeechSynthesizer _speechSynthesizer;
     private bool _isProcessing = false;
+    private bool _isSpeaking = false;
     
     // Clippy-style system prompt for Bricky
     private const string BrickySystemPrompt = @"You are Bricky, a helpful and friendly BuilderTrend documentation assistant. 
@@ -44,6 +47,11 @@ Remember: You're a friendly mascot assistant, not a formal documentation bot!";
         // Initialize services
         _llmService = new LLMService();
         _btDocService = new BTDocumentationService(_llmService);
+        
+        // Initialize text-to-speech
+        _speechSynthesizer = new SpeechSynthesizer();
+        _speechSynthesizer.SetOutputToDefaultAudioDevice();
+        _speechSynthesizer.SpeakCompleted += (s, e) => _isSpeaking = false;
         
         InputBox.Focus();
     }
@@ -235,6 +243,14 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
 
     private void AddBrickyMessage(string message)
     {
+        // Create a stack panel to hold the message and play button
+        var stackPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(10, 5, 50, 5)
+        };
+
         var messageContainer = new Border
         {
             Background = Brushes.White,
@@ -242,8 +258,6 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
             BorderThickness = new Thickness(2),
             CornerRadius = new CornerRadius(15, 15, 15, 5),
             Padding = new Thickness(15, 10, 15, 10),
-            Margin = new Thickness(10, 5, 50, 5),
-            HorizontalAlignment = HorizontalAlignment.Left,
             MaxWidth = 400
         };
 
@@ -256,8 +270,69 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
         };
 
         messageContainer.Child = textBlock;
-        ChatHistory.Children.Add(messageContainer);
+
+        // Create play button for accessibility (text-to-speech)
+        var playButton = new Button
+        {
+            Content = "🔊",
+            FontSize = 16,
+            Width = 32,
+            Height = 32,
+            Margin = new Thickness(8, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Top,
+            Background = new SolidColorBrush(Color.FromRgb(245, 245, 245)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(224, 224, 224)),
+            BorderThickness = new Thickness(1),
+            ToolTip = "Play audio (accessibility)",
+            Cursor = Cursors.Hand,
+            Style = null // Use default button style
+        };
+
+        // Add hover effect
+        playButton.MouseEnter += (s, e) =>
+        {
+            playButton.Background = new SolidColorBrush(Color.FromRgb(33, 150, 243));
+        };
+        playButton.MouseLeave += (s, e) =>
+        {
+            playButton.Background = new SolidColorBrush(Color.FromRgb(245, 245, 245));
+        };
+
+        // Store the message text for the click handler
+        var messageToSpeak = message;
+        playButton.Click += (s, e) => PlayTextToSpeech(messageToSpeak);
+
+        stackPanel.Children.Add(messageContainer);
+        stackPanel.Children.Add(playButton);
+        
+        ChatHistory.Children.Add(stackPanel);
         ScrollToBottom();
+    }
+
+    private void PlayTextToSpeech(string text)
+    {
+        if (_isSpeaking)
+        {
+            // Stop current speech
+            _speechSynthesizer.SpeakAsyncCancelAll();
+            _isSpeaking = false;
+            return;
+        }
+
+        try
+        {
+            // Remove emoji from text for cleaner speech
+            var cleanText = System.Text.RegularExpressions.Regex.Replace(text, @"[\u263a-\U0001f645]", "");
+            
+            _isSpeaking = true;
+            _speechSynthesizer.SpeakAsync(cleanText);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Text-to-speech error: {ex.Message}", "Accessibility Feature", 
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            _isSpeaking = false;
+        }
     }
 
     private void ShowCurrentPrompt(string prompt)
@@ -300,5 +375,17 @@ Provide a brief, helpful answer (max 400 chars). Be friendly and conversational!
     private void ScrollToBottom()
     {
         ChatScrollViewer.ScrollToBottom();
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        
+        // Clean up speech synthesizer
+        if (_isSpeaking)
+        {
+            _speechSynthesizer.SpeakAsyncCancelAll();
+        }
+        _speechSynthesizer.Dispose();
     }
 }
