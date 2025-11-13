@@ -17,6 +17,8 @@
     <!-- Exclude ConsoleChat and tests from MCP Server build -->
     <Compile Remove="ConsoleChat.cs" />
     <Compile Remove="SemanticSearchTest.cs" />
+    <Compile Remove="McpTestClient.cs" />
+    <Compile Remove="TestClient\**\*.cs" />
   </ItemGroup>
 
 </Project>
