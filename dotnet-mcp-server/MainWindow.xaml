@@ -17,51 +17,54 @@
         <!-- Top section with Bricky mascot and speech bubble -->
         <Grid Grid.Row="0" Background="White">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             
-            <!-- Speech bubble area -->
-            <Viewbox Grid.Column="0" 
-                     Margin="20"
-                     VerticalAlignment="Center"
-                     HorizontalAlignment="Right"
-                     MaxWidth="350">
-                <Grid>
-                    <!-- Speech bubble with tail -->
-                    <Canvas Width="400" Height="150">
-                        <!-- Main bubble -->
-                        <Border Canvas.Left="0" 
-                                Canvas.Top="0"
-                                Style="{StaticResource SpeechBubbleStyle}"
-                                MaxWidth="350"
-                                MinHeight="80">
-                            <TextBlock x:Name="SpeechText"
-                                      Text="👋 Hi! I'm Bricky, your BuilderTrend assistant! Ask me anything!"
-                                      TextWrapping="Wrap"
-                                      FontSize="16"
-                                      Foreground="{StaticResource TextBrush}"
-                                      LineHeight="24"/>
-                        </Border>
-                        
-                        <!-- Speech bubble tail (pointing right toward Bricky) -->
-                        <Polygon Points="350,100 380,105 360,120"
-                                Fill="White"
-                                Stroke="{StaticResource BorderBrush}"
-                                StrokeThickness="2"/>
-                    </Canvas>
-                </Grid>
-            </Viewbox>
-            
-            <!-- Bricky mascot image -->
-            <Image Grid.Column="1" 
+            <!-- Bricky mascot image (now on the left) -->
+            <Image Grid.Column="0" 
                    Source="assets/BrickyV1.png"
                    Width="200"
                    Height="250"
-                   Margin="10,20,20,20"
+                   Margin="20,20,10,20"
                    VerticalAlignment="Center"
-                   HorizontalAlignment="Right"
+                   HorizontalAlignment="Left"
                    Stretch="Uniform"/>
+            
+            <!-- Speech bubble area (now on the right) -->
+            <Grid Grid.Column="1" 
+                  Margin="10,20,20,20"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Speech bubble tail (pointing left toward Bricky) -->
+                <Canvas Grid.Column="0" Width="20" Height="150" VerticalAlignment="Center">
+                    <Polygon Points="20,75 0,70 15,85"
+                            Fill="White"
+                            Stroke="{StaticResource BorderBrush}"
+                            StrokeThickness="2"/>
+                </Canvas>
+                
+                <!-- Main speech bubble -->
+                <Border Grid.Column="1"
+                        Style="{StaticResource SpeechBubbleStyle}"
+                        MinWidth="250"
+                        MaxWidth="350"
+                        MinHeight="60"
+                        MaxHeight="200"
+                        VerticalAlignment="Center">
+                    <TextBlock x:Name="SpeechText"
+                              Text="👋 Hi! I'm Bricky, your BuilderTrend assistant! Ask me anything!"
+                              TextWrapping="Wrap"
+                              FontSize="14"
+                              Foreground="{StaticResource TextBrush}"
+                              LineHeight="20"/>
+                </Border>
+            </Grid>
         </Grid>
         
         <!-- Chat history area -->
