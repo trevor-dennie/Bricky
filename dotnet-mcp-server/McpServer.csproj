@@ -12,8 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Exclude ConsoleChat from MCP Server build -->
+    <!-- Exclude ConsoleChat and tests from MCP Server build -->
     <Compile Remove="ConsoleChat.cs" />
+    <Compile Remove="SemanticSearchTest.cs" />
   </ItemGroup>
 
 </Project>

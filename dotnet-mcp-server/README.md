@@ -35,8 +35,10 @@ BuilderTrend documentation searches now use **semantic search** powered by your 
 - Finds related concepts and synonyms
 - Better relevance ranking
 - Automatic fallback to keyword search
+- **Persistent caching** - instant startup after first indexing
 
-📚 **[Semantic Search Documentation](SEMANTIC_SEARCH.md)**
+📚 **[Semantic Search Documentation](SEMANTIC_SEARCH.md)**  
+📚 **[Cache Documentation](CACHE.md)**
 
 ### 🤖 LLM Integration
 

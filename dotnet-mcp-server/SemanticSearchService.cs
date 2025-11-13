@@ -5,12 +5,15 @@ namespace McpServer;
 public class SemanticSearchService
 {
     private readonly LLMService _llmService;
+    private readonly EmbeddingCache _cache;
     private Dictionary<string, float[]>? _articleEmbeddings;
     private List<HelpArticle>? _indexedArticles;
+    private readonly TimeSpan _cacheExpiration = TimeSpan.FromHours(24); // 24 hour cache
 
     public SemanticSearchService(LLMService llmService)
     {
         _llmService = llmService;
+        _cache = new EmbeddingCache();
     }
 
     /// <summary>
@@ -18,6 +21,29 @@ public class SemanticSearchService
     /// </summary>
     public async Task IndexArticlesAsync(List<HelpArticle> articles)
     {
+        // Try to load from cache first
+        var (cachedEmbeddings, cachedArticles) = await _cache.LoadAsync(_cacheExpiration);
+        
+        if (cachedEmbeddings != null && cachedArticles != null)
+        {
+            // Check if articles match (same URLs)
+            var cachedUrls = cachedArticles.Select(a => a.Url).ToHashSet();
+            var currentUrls = articles.Select(a => a.Url).ToHashSet();
+            
+            if (cachedUrls.SetEquals(currentUrls))
+            {
+                Console.Error.WriteLine($"[Semantic] Using cached embeddings for {cachedArticles.Count} articles");
+                _articleEmbeddings = cachedEmbeddings;
+                _indexedArticles = cachedArticles;
+                return;
+            }
+            else
+            {
+                Console.Error.WriteLine($"[Semantic] Cache invalid - article list changed (cached: {cachedArticles.Count}, current: {articles.Count})");
+            }
+        }
+
+        // No valid cache, generate embeddings
         _articleEmbeddings = new Dictionary<string, float[]>();
         _indexedArticles = articles;
 
@@ -43,6 +69,9 @@ public class SemanticSearchService
         }
 
         Console.Error.WriteLine($"[Semantic] Indexed {_articleEmbeddings.Count} articles with embeddings");
+
+        // Save to cache
+        await _cache.SaveAsync(_articleEmbeddings, _indexedArticles);
     }
 
     /// <summary>
@@ -192,5 +221,23 @@ public class SemanticSearchService
         }
 
         return dotProduct / (magnitudeA * magnitudeB);
+    }
+
+    /// <summary>
+    /// Get cache information
+    /// </summary>
+    public async Task<CacheInfo?> GetCacheInfoAsync()
+    {
+        return await _cache.GetInfoAsync();
+    }
+
+    /// <summary>
+    /// Clear the embedding cache
+    /// </summary>
+    public void ClearCache()
+    {
+        _cache.Clear();
+        _articleEmbeddings = null;
+        _indexedArticles = null;
     }
 }

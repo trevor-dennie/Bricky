@@ -10,3 +10,7 @@ appsettings.*.json
 
 # Keep the example configuration
 !appsettings.example.json
+
+# Embedding cache
+cache/
+*.json.cache
