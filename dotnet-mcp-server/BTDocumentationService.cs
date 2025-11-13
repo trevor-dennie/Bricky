@@ -50,10 +50,9 @@ public class BTDocumentationService
                     // Index articles if not already done
                     if (!_isSemanticIndexed)
                     {
-                        await LogAsync("Performing first-time semantic indexing...");
+                        await LogAsync("Loading semantic search index...");
                         await _semanticSearch.IndexArticlesAsync(articles);
                         _isSemanticIndexed = true;
-                        await LogAsync("Semantic indexing complete!");
                     }
 
                     await LogAsync("Using semantic search...");

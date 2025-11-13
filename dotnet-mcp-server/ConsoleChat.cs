@@ -81,6 +81,7 @@ class ConsoleChat
         if (btDocService != null)
         {
             Console.WriteLine("  /search  - Search BuilderTrend documentation");
+            Console.WriteLine("  /reindex - Force re-index of documentation (clears cache)");
         }
         Console.ResetColor();
         Console.WriteLine();
@@ -250,6 +251,64 @@ Provide a clear, practical answer that synthesizes the information from these ar
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine($"❌ Search error: {ex.Message}");
+                        Console.ResetColor();
+                        Console.WriteLine();
+                    }
+                    
+                    continue;
+                }
+                else if (command == "/reindex")
+                {
+                    if (btDocService == null)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("❌ BuilderTrend search is not enabled.");
+                        Console.ResetColor();
+                        Console.WriteLine();
+                        continue;
+                    }
+                    
+                    Console.WriteLine();
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("⚠️  This will delete the cache and re-fetch all article content.");
+                    Console.Write("Are you sure? (y/N): ");
+                    Console.ResetColor();
+                    
+                    var confirm = Console.ReadLine()?.Trim().ToLower();
+                    if (confirm != "y" && confirm != "yes")
+                    {
+                        Console.WriteLine("Cancelled.");
+                        Console.WriteLine();
+                        continue;
+                    }
+                    
+                    Console.WriteLine();
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("🔄 Clearing cache and re-indexing...");
+                    Console.ResetColor();
+                    
+                    try
+                    {
+                        // Delete cache file
+                        var cacheFile = Path.Combine("cache", "embeddings_cache.json");
+                        if (File.Exists(cacheFile))
+                        {
+                            File.Delete(cacheFile);
+                            Console.WriteLine("✅ Cache deleted");
+                        }
+                        
+                        // Force re-initialization by creating new service
+                        btDocService = new BTDocumentationService(llmService);
+                        
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("✅ Re-indexing will occur on next search");
+                        Console.ResetColor();
+                        Console.WriteLine();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"❌ Re-index error: {ex.Message}");
                         Console.ResetColor();
                         Console.WriteLine();
                     }
